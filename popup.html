@@ -13,20 +13,36 @@
       <input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your Deep Relay key">
       <label for="model">Model</label>
       <select id="model">
-        <option value="deeprelay/deepseek-v4.1-flash">DeepSeek V4.1 Flash 0910</option>
-        <option value="deeprelay/kimi-k3">Kimi K3</option>
+        <option value="deeprelay/deepseek-v4.1-flash">DeepSeek V4.1 Flash 0910 (text)</option>
+        <option value="deeprelay/kimi-k3">Kimi K3 (vision)</option>
         <option value="deeprelay/glm-5.3">GLM 5.3</option>
-        <option value="deeprelay/glm-5.3-flash">GLM 5.3 Flash</option>
+        <option value="deeprelay/glm-5.3-flash">GLM 5.3 Flash (vision)</option>
       </select>
+      <label for="answer-instructions">Answer focus prompt</label>
+      <textarea id="answer-instructions" rows="4" maxlength="2000" spellcheck="true"></textarea>
+      <p class="hint">Tell the AI what to prioritize and how to phrase its answer. This is saved on this device and sent with your question when you use a shortcut. The AI returns structured data internally; the page shows the answer, a brief explanation, and any supported citations.</p>
+      <h2>Study module files</h2>
+      <div id="drop-zone" tabindex="0" role="button" aria-controls="study-files" aria-label="Attach study files by dropping or choosing files">
+        <span>Drop PDF, DOCX, PPTX, TXT, or Markdown files here</span>
+        <label class="choose-files" for="file-input">Choose files</label>
+        <input id="file-input" type="file" accept=".pdf,.docx,.pptx,.txt,.md,.markdown" multiple hidden>
+      </div>
+      <p class="hint">Up to 10 files, 20 MB each, and 300,000 extracted characters per file. Scanned image-only PDFs may not contain extractable text.</p>
+      <ul id="study-files" aria-label="Attached study files"></ul>
+      <button id="clear-files" class="secondary" type="button" hidden>Clear all files</button>
+      <p id="file-status" role="status" aria-live="polite"></p>
       <button id="save" type="button">Save settings</button>
       <p id="status" role="status" aria-live="polite"></p>
       <section class="hint" aria-label="Keyboard shortcuts">
         <div><kbd>Alt</kbd> + <kbd>Q</kbd> Select a matching radio choice</div>
         <div><kbd>Alt</kbd> + <kbd>W</kbd> Insert a written answer below the question</div>
+        <div><kbd>Alt</kbd> + <kbd>R</kbd> Then click an image question to answer it</div>
         <div><kbd>Alt</kbd> + <kbd>1</kbd> Remove Answerly text and markers</div>
       </section>
-      <p class="hint">Highlight the question before using Alt+Q or Alt+W. Shortcuts can be changed at <code>chrome://extensions/shortcuts</code>.</p>
+      <p class="hint">For Alt+R, press the shortcut, then click the visible image/question. Answerly captures only a crop around your click and sends it to Deep Relay with nearby page text. Choose Kimi K3 or GLM 5.3 Flash for image answers. Press Escape before clicking to cancel.</p>
+      <p class="hint">Files are read locally; only extracted text is stored. Relevant passages are sent to Deep Relay only when you request an answer. Without files, answers use model knowledge; Deep Relay does not provide web search, so answers are not live-researched.</p>
+      <p class="hint">Highlight the question before using Alt+Q or Alt+W. For image questions, press Alt+R first and click the image. Shortcuts can be changed at <code>chrome://extensions/shortcuts</code>.</p>
     </main>
-    <script src="popup.js"></script>
+    <script type="module" src="popup.js"></script>
   </body>
 </html>

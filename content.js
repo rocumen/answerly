@@ -9,12 +9,16 @@
   let activeOperation = 0;
   let activeRequestId = "";
   let activeOptions = [];
+  let imageCaptureArmed = false;
+  let imageClickHandler = null;
+  let imageKeyHandler = null;
 
   chrome.runtime.onMessage.addListener((message) => {
     if (message?.type === "ANSWERLY_CLEAR_OUTPUT") {
       clearOutput();
       return;
     }
+    if (message?.type === "ANSWERLY_ARM_IMAGE_CAPTURE") armImageCapture();
     if (message?.type === "ANSWERLY_MULTIPLE_CHOICE") answerSelection("multiple-choice");
     if (message?.type === "ANSWERLY_WORDS") answerSelection("words");
   });
@@ -59,15 +63,15 @@
 
       if (mode === "multiple-choice") {
         const choice = options.find((option) => option.id === result.correctOptionId);
-        if (!choice) throw new Error("The returned answer did not match a radio option on the page.");
-        choice.input.click();
-        if (!choice.input.checked) throw new Error("The page did not allow the radio choice to be selected.");
-        addChoiceMarker(choice.element, result.answer);
-        const explanation = result.explanation ? ` ${result.explanation}` : "";
-        setPageText(pending, `${result.answer}${explanation}`, "Answer");
+        if (result.correctOptionId !== null && !choice) throw new Error("The returned answer did not match a radio option on the page.");
+        if (choice) {
+          choice.input.click();
+          if (!choice.input.checked) throw new Error("The page did not allow the radio choice to be selected.");
+          addChoiceMarker(choice.element, result.answer);
+        }
+        setPageText(pending, formatAnswer(result), "Answer");
       } else {
-        const explanation = result.explanation ? ` ${result.explanation}` : "";
-        setPageText(pending, `${result.answer}${explanation}`, "Answer");
+        setPageText(pending, formatAnswer(result), "Answer");
       }
     } catch (error) {
       if (activeOperation === operationId && error?.name !== "AbortError") {
@@ -96,7 +100,83 @@
     }
     restoreOptionAttributes(activeOptions);
     activeOptions = [];
+    disarmImageCapture();
     document.querySelectorAll(`[${OUTPUT_ATTR}]`).forEach((node) => node.remove());
+  }
+
+  function armImageCapture() {
+    if (activeOperation || imageCaptureArmed) return;
+    imageCaptureArmed = true;
+    imageClickHandler = (event) => {
+      if (event.target?.closest?.(`[${OUTPUT_ATTR}]`)) return;
+      disarmImageCapture();
+      const clicked = elementForNode(event.target);
+      if (!clicked) return;
+      const visual = clicked.closest("img,canvas,svg,[role='img'],picture") || clicked;
+      const rect = visual.getBoundingClientRect();
+      const pointRect = {
+        x: rect.width > 0 ? rect.left : event.clientX - 280,
+        y: rect.height > 0 ? rect.top : event.clientY - 180,
+        width: rect.width > 0 ? rect.width : 560,
+        height: rect.height > 0 ? rect.height : 360
+      };
+      const viewport = { width: window.innerWidth, height: window.innerHeight };
+      const anchor = findQuestionBlock(visual);
+      const pending = insertPageText(anchor, "Reading image…", "Answerly");
+      const operationId = ++operationNumber;
+      const requestId = `answerly-image-${Date.now()}-${operationId}`;
+      activeOperation = operationId;
+      activeRequestId = requestId;
+      chrome.runtime.sendMessage({
+        type: "ANSWERLY_IMAGE_REQUEST",
+        requestId,
+        payload: {
+          question: nearbyQuestionContext(visual),
+          imageRect: pointRect,
+          viewport
+        }
+      }).then((response) => {
+        if (activeOperation !== operationId) return;
+        if (!response?.ok) throw new Error(response?.error || "Could not answer the image.");
+        setPageText(pending, formatAnswer(response.result), "Answer");
+      }).catch((error) => {
+        if (activeOperation === operationId && error?.name !== "AbortError") {
+          pending.textContent = `Answerly: ${error.message || "Could not answer the image."} (click to dismiss)`;
+          pending.setAttribute("aria-live", "polite");
+        } else {
+          pending.remove();
+        }
+      }).finally(() => {
+        if (activeOperation === operationId) {
+          activeOperation = 0;
+          activeRequestId = "";
+        }
+      });
+    };
+    imageKeyHandler = (event) => {
+      if (event.key !== "Escape") return;
+      disarmImageCapture();
+    };
+    document.addEventListener("click", imageClickHandler, true);
+    document.addEventListener("keydown", imageKeyHandler, true);
+  }
+
+  function disarmImageCapture() {
+    imageCaptureArmed = false;
+    if (imageClickHandler) document.removeEventListener("click", imageClickHandler, true);
+    if (imageKeyHandler) document.removeEventListener("keydown", imageKeyHandler, true);
+    imageClickHandler = null;
+    imageKeyHandler = null;
+    if (!activeRequestId) activeOperation = 0;
+  }
+
+  function nearbyQuestionContext(element) {
+    const block = findQuestionBlock(element);
+    let text = (block?.innerText || "").replace(/\s+/g, " ").trim();
+    if (text.length < 40 && block?.parentElement) {
+      text = (block.parentElement.innerText || text).replace(/\s+/g, " ").trim();
+    }
+    return text.slice(0, 5000) || "Read the question shown in the captured image and answer it.";
   }
 
   function elementForNode(node) {
@@ -215,7 +295,7 @@
     const node = document.createElement("div");
     node.setAttribute(OUTPUT_ATTR, "answer");
     node.setAttribute("role", "note");
-    copyTextStyle(anchor, node, 0.55);
+    copyTextStyle(anchor, node, 0.6);
     node.style.whiteSpace = "pre-wrap";
     node.style.display = "block";
     node.style.width = "100%";
@@ -244,6 +324,14 @@
 
   function setPageText(node, text, label) {
     node.textContent = `${label ? `${label}: ` : ""}${text}  (Alt+1 to remove)`;
+  }
+
+  function formatAnswer(result) {
+    const explanation = result.explanation ? ` ${result.explanation}` : "";
+    const citations = Array.isArray(result.citations) && result.citations.length
+      ? ` Sources: ${result.citations.map((source) => `${source.file} · ${source.location}`).join("; ")}.`
+      : "";
+    return `${result.answer}${explanation}${citations}`;
   }
 
   function addChoiceMarker(element, answer) {

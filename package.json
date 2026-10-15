@@ -1,0 +1,31 @@
+{
+  "name": "answerly",
+  "version": "1.0.0",
+  "description": "An MV3 extension that answers a highlighted question with Deep Relay AI. It injects a content script into the active tab only after a keyboard shortcut is invoked.",
+  "main": "background.js",
+  "scripts": {
+    "test": "node --test",
+    "build": "node build.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rocumen/answerly.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/rocumen/answerly/issues"
+  },
+  "homepage": "https://github.com/rocumen/answerly#readme",
+  "dependencies": {
+    "fast-xml-parser": "^5.11.2",
+    "fflate": "^0.8.3",
+    "pdfjs-dist": "^6.4.299"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "fake-indexeddb": "^6.2.5"
+  }
+}

@@ -1,12 +1,23 @@
 :root { color-scheme: light dark; font: 13px/1.45 system-ui, sans-serif; }
-body { width: 320px; margin: 0; }
+body { width: 360px; margin: 0; }
 main { display: grid; gap: 9px; padding: 16px; }
 h1 { margin: 0 0 4px; font-size: 17px; }
+h2 { margin: 7px 0 0; font-size: 14px; }
 label { font-weight: 600; }
-input, select, button { box-sizing: border-box; width: 100%; min-height: 34px; padding: 7px 9px; border: 1px solid #8886; border-radius: 6px; font: inherit; }
+input, select, textarea, button { box-sizing: border-box; width: 100%; min-height: 34px; padding: 7px 9px; border: 1px solid #8886; border-radius: 6px; font: inherit; }
+textarea { min-height: 86px; resize: vertical; }
 button { margin-top: 4px; border: 0; background: #2563eb; color: white; font-weight: 650; cursor: pointer; }
 button:hover { background: #1d4ed8; }
+button.secondary { background: transparent; color: inherit; border: 1px solid #8886; }
+#drop-zone { display: grid; justify-items: center; gap: 8px; padding: 14px 10px; border: 1px dashed #8889; border-radius: 7px; text-align: center; color: #777; }
+#drop-zone.dragging { border-color: #2563eb; background: #2563eb12; }
+.choose-files { display: inline-block; padding: 5px 9px; border: 1px solid #8886; border-radius: 5px; cursor: pointer; }
+#study-files { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+#study-files:empty { display: none; }
+#study-files li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 7px; border: 1px solid #8883; border-radius: 5px; overflow-wrap: anywhere; }
+#study-files button { width: auto; min-height: 26px; margin: 0; padding: 3px 7px; background: transparent; color: inherit; border: 1px solid #8886; font-size: 11px; }
 #status { min-height: 1.2em; margin: 0; }
+#file-status { min-height: 1em; margin: 0; }
 .hint { margin: 0; color: #777; font-size: 12px; }
 .hint div { margin-bottom: 5px; }
 code { font: 11px ui-monospace, monospace; }
