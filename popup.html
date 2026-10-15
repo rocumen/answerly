@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Answerly Inline</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <h1>Answerly Inline</h1>
+      <label for="api-key">Deep Relay API key</label>
+      <input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your Deep Relay key">
+      <label for="model">Model</label>
+      <select id="model">
+        <option value="deeprelay/deepseek-v4.1-flash">DeepSeek V4.1 Flash 0910</option>
+        <option value="deeprelay/kimi-k3">Kimi K3</option>
+        <option value="deeprelay/glm-5.3">GLM 5.3</option>
+        <option value="deeprelay/glm-5.3-flash">GLM 5.3 Flash</option>
+      </select>
+      <button id="save" type="button">Save settings</button>
+      <p id="status" role="status" aria-live="polite"></p>
+      <section class="hint" aria-label="Keyboard shortcuts">
+        <div><kbd>Alt</kbd> + <kbd>Q</kbd> Select a matching radio choice</div>
+        <div><kbd>Alt</kbd> + <kbd>W</kbd> Insert a written answer below the question</div>
+        <div><kbd>Alt</kbd> + <kbd>1</kbd> Remove Answerly text and markers</div>
+      </section>
+      <p class="hint">Highlight the question before using Alt+Q or Alt+W. Shortcuts can be changed at <code>chrome://extensions/shortcuts</code>.</p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

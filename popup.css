@@ -1,0 +1,13 @@
+:root { color-scheme: light dark; font: 13px/1.45 system-ui, sans-serif; }
+body { width: 320px; margin: 0; }
+main { display: grid; gap: 9px; padding: 16px; }
+h1 { margin: 0 0 4px; font-size: 17px; }
+label { font-weight: 600; }
+input, select, button { box-sizing: border-box; width: 100%; min-height: 34px; padding: 7px 9px; border: 1px solid #8886; border-radius: 6px; font: inherit; }
+button { margin-top: 4px; border: 0; background: #2563eb; color: white; font-weight: 650; cursor: pointer; }
+button:hover { background: #1d4ed8; }
+#status { min-height: 1.2em; margin: 0; }
+.hint { margin: 0; color: #777; font-size: 12px; }
+.hint div { margin-bottom: 5px; }
+code { font: 11px ui-monospace, monospace; }
+kbd { padding: 1px 4px; border: 1px solid #8886; border-radius: 3px; font: inherit; }

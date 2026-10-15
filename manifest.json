@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Answerly Inline",
+  "version": "1.0.0",
+  "description": "Answers highlighted questions inline with Deep Relay AI.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["https://api.deeprelay.ai/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Answerly Inline settings",
+    "default_popup": "popup.html"
+  },
+  "commands": {
+    "answer-multiple-choice": {
+      "suggested_key": {
+        "default": "Alt+Q",
+        "mac": "Alt+Q"
+      },
+      "description": "Select the matching radio answer"
+    },
+    "answer-in-words": {
+      "suggested_key": {
+        "default": "Alt+W",
+        "mac": "Alt+W"
+      },
+      "description": "Insert a written answer below the question"
+    },
+    "clear-answers": {
+      "suggested_key": {
+        "default": "Alt+1",
+        "mac": "Alt+1"
+      },
+      "description": "Remove Answerly content from the page"
+    }
+  }
+}
