@@ -179,7 +179,11 @@ async function answerQuestion(payload, signal) {
 }
 
 async function answerImageQuestion(payload, tabId, windowId, signal) {
-  const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash" } = await chrome.storage.local.get(["apiKey", "model"]);
+  const {
+    apiKey = "",
+    model = "deeprelay/deepseek-v4.1-flash",
+    answerInstructions = ""
+  } = await chrome.storage.local.get(["apiKey", "model", "answerInstructions"]);
   if (!apiKey.trim()) throw new Error("Add your Deep Relay API key in the extension settings first.");
   if (!VISION_MODEL_IDS.has(model)) {
     throw new Error("Alt+R needs a vision model. Choose Kimi K3 or GLM 5.3 Flash in Answerly settings.");
@@ -196,6 +200,7 @@ async function answerImageQuestion(payload, tabId, windowId, signal) {
     hasFiles: reference.hasFiles,
     passages,
     imageDataUrl,
+    customInstructions: answerInstructions,
     signal
   });
 }
@@ -246,8 +251,8 @@ async function captureImageRegion(tabId, windowId, rect, viewport) {
   return `data:image/jpeg;base64,${btoa(binary)}`;
 }
 
-async function requestAnswer({ mode, question, options, hasFiles, passages, imageDataUrl = "", signal }) {
-  const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash", answerInstructions = "" } = await chrome.storage.local.get(["apiKey", "model", "answerInstructions"]);
+async function requestAnswer({ mode, question, options, hasFiles, passages, imageDataUrl = "", customInstructions = "", signal }) {
+  const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash" } = await chrome.storage.local.get(["apiKey", "model"]);
   if (!apiKey.trim()) throw new Error("Add your Deep Relay API key in the extension settings first.");
   if (!MODEL_IDS.has(model)) throw new Error("Choose a supported model in the extension settings.");
   const response = await fetch(API_URL, {
@@ -255,7 +260,7 @@ async function requestAnswer({ mode, question, options, hasFiles, passages, imag
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey.trim()}` },
     body: JSON.stringify({
       model,
-      messages: buildAnswerMessages({ mode, question, options, hasFiles, passages, imageDataUrl, customInstructions: answerInstructions }),
+      messages: buildAnswerMessages({ mode, question, options, hasFiles, passages, imageDataUrl, customInstructions }),
       temperature: 0.2,
       max_tokens: 700,
       response_format: {
