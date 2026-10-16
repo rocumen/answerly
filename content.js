@@ -1,4 +1,5 @@
 (() => {
+  // The worker injects this file on demand for each shortcut; avoid registering duplicate listeners.
   if (globalThis.__answerlyInlineInstalled) return;
   globalThis.__answerlyInlineInstalled = true;
 
@@ -129,6 +130,7 @@
   function armImageCapture() {
     if (activeOperation || imageCaptureArmed) return;
     imageCaptureArmed = true;
+    // Alt+R arms one click; the page itself remains interactive and no image is sent before that click.
     imageClickHandler = (event) => {
       if (event.target?.closest?.(`[${OUTPUT_ATTR}]`)) return;
       disarmImageCapture();

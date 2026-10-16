@@ -28,10 +28,12 @@ chrome.commands.onCommand.addListener(async (command) => {
   const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   if (!tab?.id) return;
   try {
+    // Inject only after the user invokes a shortcut, then deliver the matching page action.
     await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["content.js"] });
     await chrome.tabs.sendMessage(tab.id, { type });
   } catch (error) {
-    console.warn("Answerly could not reach this page. Some browser pages block extensions.", error);
+    // This error is available in the extension service worker's Inspect view on chrome://extensions.
+    console.error("Answerly shortcut could not inject or message the active page.", error);
   }
 });
 
@@ -205,6 +207,7 @@ async function captureImageRegion(tabId, windowId, rect, viewport) {
   }
   let screenshot;
   try {
+    // Capture the visible tab only after Alt+R is invoked and the user clicks the target area.
     screenshot = await chrome.tabs.captureVisibleTab(windowId, { format: "png" });
   } catch {
     throw new Error("Could not capture this page. Check that the tab is active, then try Alt+R again.");
