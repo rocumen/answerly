@@ -14,11 +14,12 @@ An MV3 extension that answers highlighted questions with Deep Relay AI and can g
 ## Shortcuts
 
 - **Alt+Q:** Use nearby radio options, select a supported best answer, show a concise answer at the highlighted text’s endpoint, and add a marker by the selected option. It does not submit the form. If evidence does not support a choice, the model may return no selection.
-- **Alt+W:** Insert a concise written answer at the highlighted text’s endpoint. Inserted text is 60% of the question’s font size.
+- **Alt+W:** Insert a concise written answer at the highlighted text’s endpoint. Answer text defaults to 60% of the question’s font size; adjust it from 40% to 100% in the popup. Its color matches the question by default, and can be customized there.
 - **Alt+R:** Start image-question capture, then click the visible image or question area. Answerly takes a screenshot crop around that click, reads it with a vision model, and inserts the answer after the clicked image’s block. Press **Escape** before clicking to cancel.
 - **Alt+1:** Remove Answerly-inserted answers, status/error messages, citations, and choice markers. It does not make an AI request or undo a selected radio value.
 
 Click an inserted answer or choice marker to remove that item individually.
+Inserted text no longer includes a keyboard-shortcut reminder; use **Alt+1** to clear Answerly content. The popup’s answer color setting also applies to choice markers.
 
 ## Study files
 

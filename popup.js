@@ -11,6 +11,10 @@ const DEFAULT_ANSWER_INSTRUCTIONS = "Answer exactly what the question asks. Be d
 const keyInput = document.getElementById("api-key");
 const modelSelect = document.getElementById("model");
 const answerInstructionsInput = document.getElementById("answer-instructions");
+const answerSizeInput = document.getElementById("answer-size");
+const answerSizeValue = document.getElementById("answer-size-value");
+const matchQuestionColorInput = document.getElementById("match-question-color");
+const answerColorInput = document.getElementById("answer-color");
 const status = document.getElementById("status");
 const fileInput = document.getElementById("file-input");
 const dropZone = document.getElementById("drop-zone");
@@ -19,14 +23,28 @@ const fileStatus = document.getElementById("file-status");
 const clearFilesButton = document.getElementById("clear-files");
 let processingFiles = false;
 
-chrome.storage.local.get({ apiKey: "", model: MODEL_IDS[0], answerInstructions: DEFAULT_ANSWER_INSTRUCTIONS }).then((settings) => {
+chrome.storage.local.get({
+  apiKey: "", model: MODEL_IDS[0], answerInstructions: DEFAULT_ANSWER_INSTRUCTIONS,
+  answerFontScale: 0.6, answerUsePageColor: true, answerCustomColor: "#333333"
+}).then((settings) => {
   keyInput.value = settings.apiKey;
   modelSelect.value = MODEL_IDS.includes(settings.model) ? settings.model : MODEL_IDS[0];
   answerInstructionsInput.value = typeof settings.answerInstructions === "string"
     ? settings.answerInstructions.slice(0, 2000)
     : DEFAULT_ANSWER_INSTRUCTIONS;
+  const answerSize = Number(settings.answerFontScale);
+  answerSizeInput.value = String(Number.isFinite(answerSize) ? Math.max(40, Math.min(100, Math.round(answerSize * 100 / 5) * 5)) : 60);
+  updateAnswerSizeLabel();
+  matchQuestionColorInput.checked = settings.answerUsePageColor !== false;
+  answerColorInput.value = isValidHexColor(settings.answerCustomColor) ? settings.answerCustomColor : "#333333";
+  answerColorInput.disabled = matchQuestionColorInput.checked;
 }).catch(() => {
   status.textContent = "Could not load saved settings.";
+});
+
+answerSizeInput.addEventListener("input", updateAnswerSizeLabel);
+matchQuestionColorInput.addEventListener("change", () => {
+  answerColorInput.disabled = matchQuestionColorInput.checked;
 });
 
 renderFiles().catch(() => {
@@ -49,13 +67,25 @@ document.getElementById("save").addEventListener("click", async () => {
     await chrome.storage.local.set({
       apiKey,
       model: modelSelect.value,
-      answerInstructions: answerInstructionsInput.value.trim().slice(0, 2000) || DEFAULT_ANSWER_INSTRUCTIONS
+      answerInstructions: answerInstructionsInput.value.trim().slice(0, 2000) || DEFAULT_ANSWER_INSTRUCTIONS,
+      answerFontScale: Number(answerSizeInput.value) / 100,
+      answerUsePageColor: matchQuestionColorInput.checked,
+      answerCustomColor: isValidHexColor(answerColorInput.value) ? answerColorInput.value : "#333333"
     });
     status.textContent = "Settings saved on this device.";
   } catch {
     status.textContent = "Could not save settings.";
   }
 });
+
+function updateAnswerSizeLabel() {
+  answerSizeValue.value = `${answerSizeInput.value}%`;
+  answerSizeValue.textContent = `${answerSizeInput.value}%`;
+}
+
+function isValidHexColor(value) {
+  return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
+}
 
 fileInput.addEventListener("change", () => processFiles(fileInput.files));
 dropZone.addEventListener("dragover", (event) => {

@@ -9,6 +9,9 @@
   let activeOperation = 0;
   let activeRequestId = "";
   let activeOptions = [];
+  let answerFontScale = 0.6;
+  let answerUsePageColor = true;
+  let answerCustomColor = "#333333";
   let imageCaptureArmed = false;
   let imageClickHandler = null;
   let imageKeyHandler = null;
@@ -21,6 +24,25 @@
     if (message?.type === "ANSWERLY_ARM_IMAGE_CAPTURE") armImageCapture();
     if (message?.type === "ANSWERLY_MULTIPLE_CHOICE") answerSelection("multiple-choice");
     if (message?.type === "ANSWERLY_WORDS") answerSelection("words");
+  });
+
+  chrome.storage.local.get({ answerFontScale: 0.6, answerUsePageColor: true, answerCustomColor: "#333333" }).then((settings) => {
+    const savedScale = settings.answerFontScale;
+    const scale = Number(savedScale);
+    if (Number.isFinite(scale)) answerFontScale = Math.max(0.4, Math.min(1, scale));
+    answerUsePageColor = settings.answerUsePageColor !== false;
+    if (isValidHexColor(settings.answerCustomColor)) answerCustomColor = settings.answerCustomColor;
+  }).catch(() => {});
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "local") return;
+    if (changes.answerFontScale) {
+      const scale = Number(changes.answerFontScale.newValue);
+      if (Number.isFinite(scale)) answerFontScale = Math.max(0.4, Math.min(1, scale));
+    }
+    if (changes.answerUsePageColor) answerUsePageColor = changes.answerUsePageColor.newValue !== false;
+    if (changes.answerCustomColor && isValidHexColor(changes.answerCustomColor.newValue)) {
+      answerCustomColor = changes.answerCustomColor.newValue;
+    }
   });
 
   async function answerSelection(mode) {
@@ -295,13 +317,14 @@
     const node = document.createElement("div");
     node.setAttribute(OUTPUT_ATTR, "answer");
     node.setAttribute("role", "note");
-    copyTextStyle(anchor, node, 0.6);
+    copyTextStyle(anchor, node, answerFontScale);
+    applyAnswerColor(node);
     node.style.whiteSpace = "pre-wrap";
     node.style.display = "block";
     node.style.width = "100%";
     node.style.cursor = "pointer";
     node.style.opacity = "0.9";
-    node.textContent = `${label ? `${label}: ` : ""}${text}  (Alt+1 to remove)`;
+    node.textContent = `${label ? `${label}: ` : ""}${text}`;
     node.title = "Click to remove this answer";
     node.addEventListener("click", () => node.remove(), { once: true });
     let insertedAtSelection = false;
@@ -323,7 +346,7 @@
   }
 
   function setPageText(node, text, label) {
-    node.textContent = `${label ? `${label}: ` : ""}${text}  (Alt+1 to remove)`;
+    node.textContent = `${label ? `${label}: ` : ""}${text}`;
   }
 
   function formatAnswer(result) {
@@ -338,9 +361,10 @@
     const marker = document.createElement("span");
     marker.setAttribute(OUTPUT_ATTR, "choice-marker");
     marker.setAttribute("role", "note");
-    marker.textContent = `  ✓ Selected: ${answer} (Alt+1 to remove)`;
+    marker.textContent = `  ✓ Selected: ${answer}`;
     marker.title = "Click to remove this answer marker";
     copyTextStyle(element, marker);
+    applyAnswerColor(marker);
     marker.style.fontWeight = "bold";
     marker.style.cursor = "pointer";
     marker.addEventListener("click", () => marker.remove(), { once: true });
@@ -358,6 +382,14 @@
     target.style.fontStyle = style.fontStyle;
     target.style.margin = style.margin;
     target.style.padding = style.padding;
+  }
+
+  function applyAnswerColor(node) {
+    if (!answerUsePageColor && isValidHexColor(answerCustomColor)) node.style.color = answerCustomColor;
+  }
+
+  function isValidHexColor(value) {
+    return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
   }
 
   function showPageMessage(message, anchor) {

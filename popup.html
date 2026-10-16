@@ -21,6 +21,11 @@
       <label for="answer-instructions">Answer focus prompt</label>
       <textarea id="answer-instructions" rows="4" maxlength="2000" spellcheck="true"></textarea>
       <p class="hint">Tell the AI what to prioritize and how to phrase its answer. This is saved on this device and sent with your question when you use a shortcut. The AI returns structured data internally; the page shows the answer, a brief explanation, and any supported citations.</p>
+      <label for="answer-size">Answer text size <output id="answer-size-value" for="answer-size">60%</output></label>
+      <input id="answer-size" type="range" min="40" max="100" step="5" value="60">
+      <label for="answer-color">Answer text color</label>
+      <label class="inline-toggle"><input id="match-question-color" type="checkbox" checked> Match question color</label>
+      <input id="answer-color" type="color" value="#333333" aria-label="Custom answer text color" disabled>
       <h2>Study module files</h2>
       <div id="drop-zone" tabindex="0" role="button" aria-controls="study-files" aria-label="Attach study files by dropping or choosing files">
         <span>Drop PDF, DOCX, PPTX, TXT, or Markdown files here</span>

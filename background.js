@@ -177,7 +177,7 @@ async function answerQuestion(payload, signal) {
 }
 
 async function answerImageQuestion(payload, tabId, windowId, signal) {
-  const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash", answerInstructions = "" } = await chrome.storage.local.get(["apiKey", "model", "answerInstructions"]);
+  const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash" } = await chrome.storage.local.get(["apiKey", "model"]);
   if (!apiKey.trim()) throw new Error("Add your Deep Relay API key in the extension settings first.");
   if (!VISION_MODEL_IDS.has(model)) {
     throw new Error("Alt+R needs a vision model. Choose Kimi K3 or GLM 5.3 Flash in Answerly settings.");
@@ -244,7 +244,7 @@ async function captureImageRegion(tabId, windowId, rect, viewport) {
 }
 
 async function requestAnswer({ mode, question, options, hasFiles, passages, imageDataUrl = "", signal }) {
-  const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash" } = await chrome.storage.local.get(["apiKey", "model"]);
+  const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash", answerInstructions = "" } = await chrome.storage.local.get(["apiKey", "model", "answerInstructions"]);
   if (!apiKey.trim()) throw new Error("Add your Deep Relay API key in the extension settings first.");
   if (!MODEL_IDS.has(model)) throw new Error("Choose a supported model in the extension settings.");
   const response = await fetch(API_URL, {

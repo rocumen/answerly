@@ -6,6 +6,10 @@ h2 { margin: 7px 0 0; font-size: 14px; }
 label { font-weight: 600; }
 input, select, textarea, button { box-sizing: border-box; width: 100%; min-height: 34px; padding: 7px 9px; border: 1px solid #8886; border-radius: 6px; font: inherit; }
 textarea { min-height: 86px; resize: vertical; }
+input[type="range"] { min-height: 22px; padding: 0; accent-color: #2563eb; }
+input[type="color"] { width: 48px; min-height: 34px; padding: 3px; }
+.inline-toggle { display: flex; align-items: center; gap: 7px; font-weight: 400; }
+.inline-toggle input { width: auto; min-height: auto; margin: 0; }
 button { margin-top: 4px; border: 0; background: #2563eb; color: white; font-weight: 650; cursor: pointer; }
 button:hover { background: #1d4ed8; }
 button.secondary { background: transparent; color: inherit; border: 1px solid #8886; }
