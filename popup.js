@@ -1,6 +1,3 @@
-import { extractStudyFile, MAX_FILE_COUNT, MAX_FILE_BYTES } from "./vendor/file-parser.js";
-import { listStudyFiles, saveStudyFile, removeStudyFile, clearStudyFiles } from "./study-store.js";
-
 const MODEL_IDS = [
   "deeprelay/deepseek-v4.1-flash",
   "deeprelay/kimi-k3",
@@ -16,12 +13,15 @@ const answerSizeValue = document.getElementById("answer-size-value");
 const matchQuestionColorInput = document.getElementById("match-question-color");
 const answerColorInput = document.getElementById("answer-color");
 const status = document.getElementById("status");
+const saveButton = document.getElementById("save");
+const saveButtonLabel = saveButton.textContent;
 const fileInput = document.getElementById("file-input");
 const dropZone = document.getElementById("drop-zone");
 const fileList = document.getElementById("study-files");
 const fileStatus = document.getElementById("file-status");
 const clearFilesButton = document.getElementById("clear-files");
 let processingFiles = false;
+let saveFeedbackTimer = 0;
 
 chrome.storage.local.get({
   apiKey: "", model: MODEL_IDS[0], answerInstructions: DEFAULT_ANSWER_INSTRUCTIONS,
@@ -51,18 +51,18 @@ renderFiles().catch(() => {
   fileStatus.textContent = "Could not load attached files.";
 });
 
-document.getElementById("save").addEventListener("click", async () => {
+saveButton.addEventListener("click", async () => {
+  clearTimeout(saveFeedbackTimer);
+  saveButton.textContent = saveButtonLabel;
   const apiKey = keyInput.value.trim();
-  if (!apiKey) {
-    status.textContent = "Enter your Deep Relay API key to save settings.";
-    keyInput.focus();
-    return;
-  }
   if (!MODEL_IDS.includes(modelSelect.value)) {
+    status.dataset.state = "error";
     status.textContent = "Choose one of the listed models.";
     modelSelect.focus();
     return;
   }
+  status.dataset.state = "saving";
+  status.textContent = "Saving settings…";
   try {
     await chrome.storage.local.set({
       apiKey,
@@ -72,9 +72,19 @@ document.getElementById("save").addEventListener("click", async () => {
       answerUsePageColor: matchQuestionColorInput.checked,
       answerCustomColor: isValidHexColor(answerColorInput.value) ? answerColorInput.value : "#333333"
     });
-    status.textContent = "Settings saved on this device.";
+    status.dataset.state = apiKey ? "success" : "warning";
+    status.textContent = apiKey
+      ? "Settings saved on this device."
+      : "Settings saved. Add your Deep Relay API key before asking questions.";
+    saveButton.textContent = "Saved ✓";
+    clearTimeout(saveFeedbackTimer);
+    saveFeedbackTimer = setTimeout(() => {
+      saveButton.textContent = saveButtonLabel;
+    }, 1800);
   } catch {
-    status.textContent = "Could not save settings.";
+    status.dataset.state = "error";
+    status.textContent = "Could not save settings. Check that Answerly is enabled, then reopen its settings.";
+    saveButton.textContent = saveButtonLabel;
   }
 });
 
@@ -109,6 +119,7 @@ dropZone.addEventListener("keydown", (event) => {
 
 clearFilesButton.addEventListener("click", async () => {
   try {
+    const { clearStudyFiles } = await import("./study-store.js");
     await clearStudyFiles();
     await renderFiles();
     fileStatus.textContent = "All module files removed from this device.";
@@ -124,6 +135,12 @@ async function processFiles(fileCollection) {
   processingFiles = true;
   let saved = 0;
   try {
+    // Load the study parser only when the user attaches a file so parser-load failures
+    // cannot prevent the API key and answer preferences from being saved.
+    const [{ extractStudyFile, MAX_FILE_COUNT, MAX_FILE_BYTES }, { listStudyFiles, saveStudyFile }] = await Promise.all([
+      import("./vendor/file-parser.js"),
+      import("./study-store.js")
+    ]);
     for (const file of files) {
       const current = await listStudyFiles();
       if (current.length >= MAX_FILE_COUNT) throw new Error(`You can attach up to ${MAX_FILE_COUNT} files.`);
@@ -144,6 +161,7 @@ async function processFiles(fileCollection) {
 }
 
 async function renderFiles() {
+  const { listStudyFiles, removeStudyFile } = await import("./study-store.js");
   const files = await listStudyFiles();
   fileList.replaceChildren();
   for (const file of files) {
