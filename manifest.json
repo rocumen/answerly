@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Answerly Inline",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Answers highlighted questions inline with Deep Relay AI.",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": ["https://api.deeprelay.ai/*"],
@@ -19,14 +19,14 @@
         "default": "Alt+Q",
         "mac": "Alt+Q"
       },
-      "description": "Select the matching radio answer"
+      "description": "Answer a multiple-choice question without selecting a choice"
     },
     "answer-in-words": {
       "suggested_key": {
         "default": "Alt+W",
         "mac": "Alt+W"
       },
-      "description": "Insert a written answer below the question"
+      "description": "Insert an answer below the question or into the selected editable text"
     },
     "answer-from-image": {
       "suggested_key": {

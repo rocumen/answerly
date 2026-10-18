@@ -4,7 +4,10 @@ const MODEL_IDS = [
   "deeprelay/glm-5.3",
   "deeprelay/glm-5.3-flash"
 ];
-const DEFAULT_ANSWER_INSTRUCTIONS = "Answer exactly what the question asks. Be direct and concise. For multiple choice, choose only from the provided options. If the evidence is insufficient, say so briefly instead of guessing. Avoid unrelated details.";
+const LEGACY_DEFAULT_ANSWER_INSTRUCTIONS = "Answer exactly what the question asks. Be direct and concise. For multiple choice, choose only from the provided options. If the evidence is insufficient, say so briefly instead of guessing. Avoid unrelated details.";
+const PREVIOUS_DEFAULT_ANSWER_INSTRUCTIONS = `${LEGACY_DEFAULT_ANSWER_INSTRUCTIONS} When asked to write, fix, or complete code, provide the complete usable code solution rather than a partial snippet.`;
+const PREVIOUS_CODE_ONLY_ANSWER_INSTRUCTIONS = `${PREVIOUS_DEFAULT_ANSWER_INSTRUCTIONS} For code responses, provide the complete code only, without prose or Markdown fences. If an explanation is needed, write it as a comment using that language's syntax (for example, # comment in Python).`;
+const DEFAULT_ANSWER_INSTRUCTIONS = `${PREVIOUS_CODE_ONLY_ANSWER_INSTRUCTIONS} Add brief, useful comments for important or non-obvious logic so I can understand the code. Use the language's comment syntax, and do not comment every obvious line.`;
 const keyInput = document.getElementById("api-key");
 const modelSelect = document.getElementById("model");
 const answerInstructionsInput = document.getElementById("answer-instructions");
@@ -29,9 +32,17 @@ chrome.storage.local.get({
 }).then((settings) => {
   keyInput.value = settings.apiKey;
   modelSelect.value = MODEL_IDS.includes(settings.model) ? settings.model : MODEL_IDS[0];
-  answerInstructionsInput.value = typeof settings.answerInstructions === "string"
-    ? settings.answerInstructions.slice(0, 2000)
-    : DEFAULT_ANSWER_INSTRUCTIONS;
+  const savedInstructions = typeof settings.answerInstructions === "string" ? settings.answerInstructions : "";
+  const hasLegacyDefault = [
+    LEGACY_DEFAULT_ANSWER_INSTRUCTIONS,
+    PREVIOUS_DEFAULT_ANSWER_INSTRUCTIONS,
+    PREVIOUS_CODE_ONLY_ANSWER_INSTRUCTIONS
+  ]
+    .includes(savedInstructions.trim());
+  answerInstructionsInput.value = (hasLegacyDefault ? DEFAULT_ANSWER_INSTRUCTIONS : savedInstructions).slice(0, 2000);
+  if (hasLegacyDefault) {
+    chrome.storage.local.set({ answerInstructions: DEFAULT_ANSWER_INSTRUCTIONS }).catch(() => {});
+  }
   const answerSize = Number(settings.answerFontScale);
   answerSizeInput.value = String(Number.isFinite(answerSize) ? Math.max(40, Math.min(100, Math.round(answerSize * 100 / 5) * 5)) : 60);
   updateAnswerSizeLabel();

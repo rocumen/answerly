@@ -20,7 +20,6 @@
       </select>
       <label for="answer-instructions">Answer focus prompt</label>
       <textarea id="answer-instructions" rows="4" maxlength="2000" spellcheck="true"></textarea>
-      <p class="hint">Tell the AI what to prioritize and how to phrase its answer. This is saved on this device and sent with your question when you use a shortcut. The AI returns structured data internally; the page shows the answer, a brief explanation, and any supported citations.</p>
       <label for="answer-size">Answer text size <output id="answer-size-value" for="answer-size">60%</output></label>
       <input id="answer-size" type="range" min="40" max="100" step="5" value="60">
       <label for="answer-color">Answer text color</label>
@@ -38,15 +37,6 @@
       <p id="file-status" role="status" aria-live="polite"></p>
       <p id="status" role="status" aria-live="polite"></p>
       <button id="save" type="button">Save settings</button>
-      <section class="hint" aria-label="Keyboard shortcuts">
-        <div><kbd>Alt</kbd> + <kbd>Q</kbd> Select a matching radio choice</div>
-        <div><kbd>Alt</kbd> + <kbd>W</kbd> Insert a written answer below the question</div>
-        <div><kbd>Alt</kbd> + <kbd>R</kbd> Then click an image question to answer it</div>
-        <div><kbd>Alt</kbd> + <kbd>1</kbd> Remove Answerly text and markers</div>
-      </section>
-      <p class="hint">For Alt+R, press the shortcut, then click the visible image/question. Answerly captures only a crop around your click and sends it to Deep Relay with nearby page text. Choose Kimi K3 or GLM 5.3 Flash for image answers. Press Escape before clicking to cancel.</p>
-      <p class="hint">Files are read locally; only extracted text is stored. Relevant passages are sent to Deep Relay only when you request an answer. Without files, answers use model knowledge; Deep Relay does not provide web search, so answers are not live-researched.</p>
-      <p class="hint">Highlight the question before using Alt+Q or Alt+W. For image questions, press Alt+R first and click the image. Shortcuts can be changed at <code>chrome://extensions/shortcuts</code>.</p>
     </main>
     <script type="module" src="popup.js"></script>
   </body>

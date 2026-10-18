@@ -13,13 +13,12 @@ An MV3 extension that answers highlighted questions with Deep Relay AI and can g
 
 ## Shortcuts
 
-- **Alt+Q:** Use nearby radio options, select a supported best answer, show a concise answer at the highlighted text’s endpoint, and add a marker by the selected option. It does not submit the form. If evidence does not support a choice, the model may return no selection.
-- **Alt+W:** Insert a concise written answer at the highlighted text’s endpoint. Answer text defaults to 60% of the question’s font size; adjust it from 40% to 100% in the popup. Its color matches the question by default, and can be customized there.
+- **Alt+Q:** Use nearby radio labels to determine the best answer and show it inline. Answerly does not click or select a radio option and does not submit the form. If evidence does not support a choice, the model may return no selection.
+- **Alt+W:** Insert a concise written answer at the highlighted text’s endpoint. In supported CodeMirror, Ace, and Monaco code editors, a temporary language-appropriate `Thinking…` comment appears while the AI is responding, then is replaced with the answer. If the highlight is still selected inside a text field, contenteditable region, or supported editor, add the answer after that passage while keeping the original text. If the editor cannot safely accept the edit, show the answer inline instead. Answer text defaults to 60% of the question’s font size; adjust it from 40% to 100% in the popup. Its color matches the question by default, and can be customized there.
 - **Alt+R:** Start image-question capture, then click the visible image or question area. Answerly takes a screenshot crop around that click, reads it with a vision model, and inserts the answer after the clicked image’s block. Press **Escape** before clicking to cancel.
-- **Alt+1:** Remove Answerly-inserted answers, status/error messages, citations, and choice markers. It does not make an AI request or undo a selected radio value.
+- **Alt+1:** Remove Answerly-inserted answers, status/error messages, citations, and legacy choice markers. It does not make an AI request or undo edits made inside an editor.
 
-Click an inserted answer or choice marker to remove that item individually.
-Inserted text no longer includes a keyboard-shortcut reminder; use **Alt+1** to clear Answerly content. The popup’s answer color setting also applies to choice markers.
+Click an inserted inline answer to remove it individually. Use **Alt+1** to clear Answerly content from the page; text inserted into an editor becomes ordinary editor content and can be undone with that editor’s normal undo command.
 
 ## Study files
 
@@ -54,7 +53,7 @@ The extension uses Deep Relay’s OpenAI-compatible chat completions API at `htt
 - Attached extracted text and the answer-focus prompt stay local until a shortcut requests an answer. Relevant excerpts, question text, and nearby radio-choice labels are then sent to Deep Relay over HTTPS.
 - The extension injects a content script into the active tab only after a shortcut. It uses DOM text nodes and never submits forms.
 - Alt+R temporarily listens for the next page click after you invoke it. The screenshot is cropped locally around that clicked area and only the crop is sent to Deep Relay; the extension does not save screenshots.
-- Alt+Q’s radio click may trigger the page’s regular radio `click` and `change` handlers.
+- Alt+W edits a selected passage in supported text fields, contenteditable regions, and CodeMirror, Ace, or Monaco editors. Other custom editor implementations may not expose a safe editing API; in those cases, Answerly leaves the editor unchanged and displays the answer inline.
 - Browser-internal pages, the Chrome Web Store, and some protected pages block extension script injection.
 
 ## Development checks
