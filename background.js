@@ -381,7 +381,7 @@ async function answerQuestion(payload, signal) {
         properties: {
           answer: { type: "string" },
           explanation: { type: "string" },
-          correctOptionId: { type: ["string", "null"] },
+          correctOptionId: { type: "string" },
           citations: citationSchema()
         },
         required: ["answer", "explanation", "correctOptionId", "citations"]
@@ -392,34 +392,21 @@ async function answerQuestion(payload, signal) {
         properties: {
           answer: { type: "string" },
           explanation: { type: "string" },
-          correctOptionId: { type: ["string", "null"] },
+          correctOptionId: { type: "string" },
           citations: citationSchema()
         },
         required: ["answer", "explanation", "correctOptionId", "citations"]
       };
 
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey.trim()}`
-    },
-    body: JSON.stringify({
-      model,
-      messages: buildAnswerMessages({ mode, question, options, hasFiles: reference.hasFiles, passages, customInstructions: answerInstructions }),
-      temperature: 0.2,
-      max_tokens: 700,
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "answer_result", strict: true, schema }
-      }
-    }),
+  const { response, body } = await postAnswerRequest({
+    apiKey,
+    model,
+    messages: buildAnswerMessages({ mode, question, options, hasFiles: reference.hasFiles, passages, customInstructions: answerInstructions }),
+    schema,
     signal
   });
-
-  const body = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(body?.error?.message || `Deep Relay request failed (${response.status}).`);
+    throw new Error(formatDeepRelayError(response, body));
   }
   const content = body?.choices?.[0]?.message?.content;
   const text = typeof content === "string"
@@ -435,11 +422,13 @@ async function answerQuestion(payload, signal) {
   } catch {
     throw new Error("The AI response was not valid JSON. Try again.");
   }
-  if (typeof result.answer !== "string" || typeof result.explanation !== "string") {
+  if (typeof result.answer !== "string" || typeof result.explanation !== "string" ||
+    (mode === "multiple-choice" && typeof result.correctOptionId !== "string")) {
     throw new Error("The AI response did not contain a valid answer.");
   }
+  const correctOptionId = typeof result.correctOptionId === "string" ? result.correctOptionId : "";
   const validIds = new Set(options.map((option) => option.id));
-  if (mode === "multiple-choice" && result.correctOptionId !== null && !validIds.has(String(result.correctOptionId))) {
+  if (mode === "multiple-choice" && correctOptionId !== "" && !validIds.has(correctOptionId)) {
     throw new Error("The AI answer did not match any detected radio choice. Try again.");
   }
   const validCitations = new Set(passages.map((passage) => `${passage.file}\u0000${passage.location}`));
@@ -449,7 +438,7 @@ async function answerQuestion(payload, signal) {
   return {
     answer: result.answer.slice(0, 4000),
     explanation: result.explanation.slice(0, 6000),
-    correctOptionId: mode === "multiple-choice" && result.correctOptionId !== null ? String(result.correctOptionId) : null,
+    correctOptionId: mode === "multiple-choice" && correctOptionId ? correctOptionId : null,
     citations
   };
 }
@@ -531,32 +520,25 @@ async function requestAnswer({ mode, question, options, hasFiles, passages, imag
   const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash" } = await chrome.storage.local.get(["apiKey", "model"]);
   if (!apiKey.trim()) throw new Error("Add your Deep Relay API key in the extension settings first.");
   if (!MODEL_IDS.has(model)) throw new Error("Choose a supported model in the extension settings.");
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey.trim()}` },
-    body: JSON.stringify({
-      model,
-      messages: buildAnswerMessages({ mode, question, options, hasFiles, passages, imageDataUrl, customInstructions }),
-      temperature: 0.2,
-      max_tokens: 700,
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "answer_result", strict: true, schema: answerSchema(mode) }
-      }
-    }),
+  const { response, body } = await postAnswerRequest({
+    apiKey,
+    model,
+    messages: buildAnswerMessages({ mode, question, options, hasFiles, passages, imageDataUrl, customInstructions }),
+    schema: answerSchema(mode),
     signal
   });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body?.error?.message || `Deep Relay request failed (${response.status}).`);
+  if (!response.ok) throw new Error(formatDeepRelayError(response, body));
   const content = body?.choices?.[0]?.message?.content;
   const text = typeof content === "string" ? content.trim()
     : Array.isArray(content) ? content.map((part) => typeof part?.text === "string" ? part.text : "").join("").trim() : "";
   if (!text) throw new Error("The AI returned an empty answer. Try again.");
   let result;
   try { result = JSON.parse(text); } catch { throw new Error("The AI response was not valid JSON. Try again."); }
-  if (typeof result.answer !== "string" || typeof result.explanation !== "string") throw new Error("The AI response did not contain a valid answer.");
+  if (typeof result.answer !== "string" || typeof result.explanation !== "string" ||
+    (mode === "multiple-choice" && typeof result.correctOptionId !== "string")) throw new Error("The AI response did not contain a valid answer.");
+  const correctOptionId = typeof result.correctOptionId === "string" ? result.correctOptionId : "";
   const validIds = new Set(options.map((option) => option.id));
-  if (mode === "multiple-choice" && result.correctOptionId !== null && !validIds.has(String(result.correctOptionId))) {
+  if (mode === "multiple-choice" && correctOptionId !== "" && !validIds.has(correctOptionId)) {
     throw new Error("The AI answer did not match any detected radio choice. Try again.");
   }
   const validCitations = new Set(passages.map((passage) => `${passage.file}\u0000${passage.location}`));
@@ -564,7 +546,7 @@ async function requestAnswer({ mode, question, options, hasFiles, passages, imag
     ? result.citations.filter((citation) => validCitations.has(`${citation.file}\u0000${citation.location}`)).slice(0, 3) : [];
   return {
     answer: result.answer.slice(0, 4000), explanation: result.explanation.slice(0, 6000),
-    correctOptionId: mode === "multiple-choice" && result.correctOptionId !== null ? String(result.correctOptionId) : null,
+    correctOptionId: mode === "multiple-choice" && correctOptionId ? correctOptionId : null,
     citations
   };
 }
@@ -574,10 +556,48 @@ function answerSchema(mode) {
     type: "object", additionalProperties: false,
     properties: {
       answer: { type: "string" }, explanation: { type: "string" },
-      correctOptionId: { type: ["string", "null"] }, citations: citationSchema()
+      correctOptionId: { type: "string" }, citations: citationSchema()
     },
     required: ["answer", "explanation", "correctOptionId", "citations"]
   };
+}
+
+async function postAnswerRequest({ apiKey, model, messages, schema, signal }) {
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${apiKey.trim()}`
+  };
+  const send = (responseFormat) => {
+    const requestBody = { model, messages, max_tokens: 700, response_format: responseFormat };
+    if (model !== "deeprelay/kimi-k3") requestBody.temperature = 0.2;
+    return fetch(API_URL, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(requestBody),
+      signal
+    });
+  };
+
+  const useJsonModeFirst = model === "deeprelay/kimi-k3";
+  let response = await send(useJsonModeFirst
+    ? { type: "json_object" }
+    : { type: "json_schema", json_schema: { name: "answer_result", strict: true, schema } });
+  let body = await response.json().catch(() => ({}));
+  const relayErrorCode = response.headers.get("X-Deeprelay-Error-Code") || body?.error?.code || "";
+  const errorMessage = String(body?.error?.message || "").toLowerCase();
+  const rejectedSchema = relayErrorCode === "upstream_rejected_request" ||
+    errorMessage.includes("upstream model rejected this request as invalid");
+  if (!response.ok && rejectedSchema && !useJsonModeFirst) {
+    response = await send({ type: "json_object" });
+    body = await response.json().catch(() => ({}));
+  }
+  return { response, body };
+}
+
+function formatDeepRelayError(response, body) {
+  const code = response.headers.get("X-Deeprelay-Error-Code") || body?.error?.code || "";
+  const detail = body?.error?.message || "Unknown provider error.";
+  return `Deep Relay request failed (${response.status}${code ? `, ${code}` : ""}): ${detail}`;
 }
 
 function citationSchema() {
