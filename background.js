@@ -518,12 +518,13 @@ async function captureImageRegion(tabId, windowId, rect, viewport) {
 }
 
 async function requestAnswer({ mode, question, options, hasFiles, passages, imageDataUrl = "", customInstructions = "", signal }) {
-  const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash" } = await chrome.storage.local.get(["apiKey", "model"]);
+  const { apiKey = "", model = "deeprelay/deepseek-v4.1-flash", reasoningEffort = "medium" } = await chrome.storage.local.get(["apiKey", "model", "reasoningEffort"]);
   if (!apiKey.trim()) throw new Error("Add your Deep Relay API key in the extension settings first.");
   if (!MODEL_IDS.has(model)) throw new Error("Choose a supported model in the extension settings.");
   const { response, body } = await postAnswerRequest({
     apiKey,
     model,
+    reasoningEffort,
     messages: buildAnswerMessages({ mode, question, options, hasFiles, passages, imageDataUrl, customInstructions }),
     schema: answerSchema(mode),
     signal
@@ -563,13 +564,14 @@ function answerSchema(mode) {
   };
 }
 
-async function postAnswerRequest({ apiKey, model, messages, schema, signal }) {
+async function postAnswerRequest({ apiKey, model, reasoningEffort = "medium", messages, schema, signal }) {
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${apiKey.trim()}`
   };
   const send = (responseFormat) => {
     const requestBody = { model, messages, max_tokens: 700, response_format: responseFormat };
+    if (["none", "minimal", "low", "medium", "high", "xhigh"].includes(reasoningEffort)) requestBody.reasoning_effort = reasoningEffort;
     if (model !== "deeprelay/kimi-k3") requestBody.temperature = 0.2;
     return fetch(API_URL, {
       method: "POST",

@@ -10,6 +10,7 @@ const PREVIOUS_CODE_ONLY_ANSWER_INSTRUCTIONS = `${PREVIOUS_DEFAULT_ANSWER_INSTRU
 const DEFAULT_ANSWER_INSTRUCTIONS = `${PREVIOUS_CODE_ONLY_ANSWER_INSTRUCTIONS} Add brief, useful comments for important or non-obvious logic so I can understand the code. Use the language's comment syntax, and do not comment every obvious line.`;
 const keyInput = document.getElementById("api-key");
 const modelSelect = document.getElementById("model");
+const reasoningEffortSelect = document.getElementById("reasoning-effort");
 const answerInstructionsInput = document.getElementById("answer-instructions");
 const answerSizeInput = document.getElementById("answer-size");
 const answerSizeValue = document.getElementById("answer-size-value");
@@ -27,11 +28,12 @@ let processingFiles = false;
 let saveFeedbackTimer = 0;
 
 chrome.storage.local.get({
-  apiKey: "", model: MODEL_IDS[0], answerInstructions: DEFAULT_ANSWER_INSTRUCTIONS,
+  apiKey: "", model: MODEL_IDS[0], reasoningEffort: "medium", answerInstructions: DEFAULT_ANSWER_INSTRUCTIONS,
   answerFontScale: 0.6, answerUsePageColor: true, answerCustomColor: "#333333"
 }).then((settings) => {
   keyInput.value = settings.apiKey;
   modelSelect.value = MODEL_IDS.includes(settings.model) ? settings.model : MODEL_IDS[0];
+  reasoningEffortSelect.value = ["", "none", "minimal", "low", "medium", "high", "xhigh"].includes(settings.reasoningEffort) ? settings.reasoningEffort : "medium";
   const savedInstructions = typeof settings.answerInstructions === "string" ? settings.answerInstructions : "";
   const hasLegacyDefault = [
     LEGACY_DEFAULT_ANSWER_INSTRUCTIONS,
@@ -78,6 +80,7 @@ saveButton.addEventListener("click", async () => {
     await chrome.storage.local.set({
       apiKey,
       model: modelSelect.value,
+      reasoningEffort: reasoningEffortSelect.value,
       answerInstructions: answerInstructionsInput.value.trim().slice(0, 2000) || DEFAULT_ANSWER_INSTRUCTIONS,
       answerFontScale: Number(answerSizeInput.value) / 100,
       answerUsePageColor: matchQuestionColorInput.checked,

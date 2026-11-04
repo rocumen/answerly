@@ -18,6 +18,17 @@
         <option value="deeprelay/glm-5.3">GLM 5.3</option>
         <option value="deeprelay/glm-5.3-flash">GLM 5.3 Flash (vision)</option>
       </select>
+      <label for="reasoning-effort">Thinking level</label>
+      <select id="reasoning-effort">
+        <option value="">Model default</option>
+        <option value="none">None</option>
+        <option value="minimal">Minimal</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="xhigh">Extra high</option>
+      </select>
+      <p class="hint">Deep Relay may use the model default when a level isn’t supported.</p>
       <label for="answer-instructions">Answer focus prompt</label>
       <textarea id="answer-instructions" rows="4" maxlength="2000" spellcheck="true"></textarea>
       <label for="answer-size">Answer text size <output id="answer-size-value" for="answer-size">60%</output></label>
