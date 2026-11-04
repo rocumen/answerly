@@ -34,7 +34,7 @@ The popup’s **Answer focus prompt** lets you set a personal preference, such a
 
 Deep Relay’s documented inference API does not provide hosted web search. With no files attached, Answerly answers from the selected model’s existing knowledge and does not claim live research. For current facts, use a separate browser search and attach relevant material if you want it cited by this extension.
 
-For Alt+R image answers, select a vision-capable chat model. In the current Deep Relay image-input documentation, the compatible models among Answerly’s catalog are **Kimi K3** (`deeprelay/kimi-k3`) and **GLM 5.3 Flash** (`deeprelay/glm-5.3-flash`). Alt+R captures the visible tab locally and crops around the clicked element; only that crop and nearby page text are sent to Deep Relay. Avoid clicking an image if the visible area contains unrelated private information. Image input incurs model input usage. Some browser-internal, protected, cross-origin frame, video, or offscreen content cannot be captured this way.
+For Alt+R image answers, select a vision-capable chat model. Deep Relay’s live model catalog marks **DeepSeek V4.1 Flash** (`deeprelay/deepseek-v4.1-flash`), **Kimi K3** (`deeprelay/kimi-k3`), and **GLM 5.3 Flash** (`deeprelay/glm-5.3-flash`) as supporting image input. Alt+R captures the visible tab locally and crops around the clicked element; only that crop and nearby page text are sent to Deep Relay. Avoid clicking an image if the visible area contains unrelated private information. Image input incurs model input usage. Some browser-internal, protected, cross-origin frame, video, or offscreen content cannot be captured this way.
 
 ## Deep Relay configuration
 
@@ -42,7 +42,7 @@ The extension uses Deep Relay’s OpenAI-compatible chat completions API at `htt
 
 | Display name | Model ID |
 | --- | --- |
-| DeepSeek V4.1 Flash 0910 | `deeprelay/deepseek-v4.1-flash` (text in chat image mode) |
+| DeepSeek V4.1 Flash 1017 | `deeprelay/deepseek-v4.1-flash` (vision) |
 | Kimi K3 | `deeprelay/kimi-k3` (vision) |
 | GLM 5.3 | `deeprelay/glm-5.3` |
 | GLM 5.3 Flash | `deeprelay/glm-5.3-flash` (vision) |

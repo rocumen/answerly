@@ -9,6 +9,7 @@ const MODEL_IDS = new Set([
   "deeprelay/glm-5.3-flash"
 ]);
 const VISION_MODEL_IDS = new Set([
+  "deeprelay/deepseek-v4.1-flash",
   "deeprelay/kimi-k3",
   "deeprelay/glm-5.3-flash"
 ]);
@@ -451,7 +452,7 @@ async function answerImageQuestion(payload, tabId, windowId, signal) {
   } = await chrome.storage.local.get(["apiKey", "model", "answerInstructions"]);
   if (!apiKey.trim()) throw new Error("Add your Deep Relay API key in the extension settings first.");
   if (!VISION_MODEL_IDS.has(model)) {
-    throw new Error("Alt+R needs a vision model. Choose Kimi K3 or GLM 5.3 Flash in Answerly settings.");
+    throw new Error("Alt+R needs a vision model. Choose DeepSeek V4.1 Flash, Kimi K3, or GLM 5.3 Flash in Answerly settings.");
   }
   const imageDataUrl = await captureImageRegion(tabId, windowId, payload?.imageRect, payload?.viewport);
   const question = String(payload?.question ?? "Read and answer the question shown in the attached image.")
