@@ -3,7 +3,7 @@
   "name": "Answerly Inline",
   "version": "1.2.0",
   "description": "Answers highlighted questions inline with Deep Relay AI.",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "activeTab", "scripting", "contextMenus"],
   "host_permissions": ["https://api.deeprelay.ai/*"],
   "background": {
     "service_worker": "background.js",

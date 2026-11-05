@@ -17,6 +17,26 @@ const MAX_QUESTION_CHARS = 12000;
 const MAX_OPTIONS = 40;
 const activeRequests = new Map();
 
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: "answerly-answer-selection",
+      title: "Answer selection with Answerly",
+      contexts: ["selection"]
+    });
+  });
+});
+
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId !== "answerly-answer-selection" || !tab?.id) return;
+  try {
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["content.js"] });
+    await chrome.tabs.sendMessage(tab.id, { type: "ANSWERLY_WORDS" });
+  } catch (error) {
+    console.error("Answerly context-menu action could not inject or message the page.", error);
+  }
+});
+
 chrome.commands.onCommand.addListener(async (command) => {
   const commandTypes = {
     "answer-multiple-choice": "ANSWERLY_MULTIPLE_CHOICE",
